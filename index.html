@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    table,
+    thead,
+    tr,
+    td,
+    th {
+      border: 1px solid black;
+      padding: 5px;
+    }
+  </style>
+  <title>Document</title>
+</head>
+
+<body>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Produk</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody id="result">
+
+      <tr>
+        <td>
+          <select onchange="checkVal(event)" class="name"></select>
+          <select class="size"></select>
+          <select class="color"></select>
+        </td>
+        <td>
+          <button class="size" onclick="addItem()">+</button>
+          <button>-</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  <script>
+    const getItem = async () => {
+      await axios.get('http://localhost:3000/products')
+        .then((res) => {
+          let bucketProduct = '';
+          let products = res.data;
+          products.forEach(product => {
+            bucketProduct += `
+            <option value="${product.id}">${product.name}</option>
+          `
+          });
+          document.querySelector('.name').innerHTML = bucketProduct;
+        })
+        .catch((err) => {
+          console.log(err.message)
+        });
+    }
+    getItem();
+
+    const checkVal = async (event) => {
+      const selectedOption = event.target.value;
+      var sizeElement = event.target.nextElementSibling;
+      var colorElement = sizeElement.nextElementSibling;
+      await axios.get('http://localhost:3000/products')
+        .then((res) => {
+          let bucketSize = '';
+          let bucketColor = '';
+          let products = res.data;
+          let result = products.filter((product) => {
+            return product.id == selectedOption;
+          })
+          result.forEach((product) => {
+            product.size.forEach((siz) => {
+              bucketSize += `
+                <option value="${siz}">${siz}</option>
+              `
+            })
+            product.color.forEach((col) => {
+              bucketColor += `
+                <option value="${col}">${col}</option>
+              `
+            })
+          });
+          sizeElement.innerHTML = bucketSize;
+          colorElement.innerHTML = bucketColor;
+        })
+        .catch((err) => {
+          console.log(err.message)
+        });
+    }
+
+
+    const addItem = async () => {
+      await axios.get('http://localhost:3000/products')
+        .then((res) => {
+          let bucketProduct = '';
+          let products = res.data;
+          products.forEach(product => {
+            bucketProduct += `
+            <option value="${product.id}">${product.name}</option>
+          `
+          });
+          let content = `
+          <tr>
+            <td>
+              <select onchange="checkVal(event)" class="name">${bucketProduct}</select>
+              <select class="size"></select>
+              <select class="color"></select>
+            </td>
+            <td>
+              <button onclick="addItem()">+</button>
+              <button>-</button>
+            </td>
+          </tr>
+          `
+          $('#result').append(content);
+        })
+        .catch((err) => {
+          console.log(err.message)
+        });
+    }
+  </script>
+</body>
+
+</html>

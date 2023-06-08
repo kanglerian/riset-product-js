@@ -1,0 +1,15 @@
+{
+  "products": [
+    {
+      "id": 1,
+      "name": "Sirwal Ua",
+      "size": ["XL", "L", "M"],
+      "color": ["Merah","Hijau","Biru"]
+    },{
+      "id": 2,
+      "name": "Sirwal Neng",
+      "size": ["L", "M", "S"],
+      "color": ["Toska","Biru Indomie","Hijau"]
+    }
+  ]
+}
