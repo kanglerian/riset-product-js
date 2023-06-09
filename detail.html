@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    table,
+    thead,
+    tr,
+    td,
+    th {
+      border: 1px solid black;
+      padding: 5px;
+    }
+  </style>
+  <title>Document</title>
+</head>
+
+<body>
+  <div id="detail"></div>
+  <table style="margin-top: 10px">
+    <thead>
+      <tr>
+        <th>Produk</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody id="transactionResult"></tbody>
+  </table>
+  <script src="./js/jquery-3.7.0.min.js"></script>
+  <script src="./js/axios.min.js"></script>
+  <script>
+    const getTransaction = async () => {
+      await axios.get('http://localhost:3000/transactions?trx=TRX07062023001')
+        .then((res) => {
+          let bucket = '';
+          let transactions = res.data;
+          transactions.forEach((trx, i) => {
+            bucket += `
+              <h3>No. Transaksi: <span id="resTrx">${trx.trx}</span></h3>
+              <h4>Tanggal: <span id="resDate">${trx.tanggal}</span></h4>
+          `
+          })
+          document.getElementById('detail').innerHTML = bucket;
+        });
+    }
+    getTransaction();
+
+    const checkVal = async (event) => {
+      const selectedOption = event.target.value;
+      var sizeElement = event.target.nextElementSibling;
+      var colorElement = sizeElement.nextElementSibling;
+      await axios.get('http://localhost:3000/products')
+        .then((res) => {
+          let bucketSize = '';
+          let bucketColor = '';
+          let products = res.data;
+          let result = products.filter((product) => {
+            return product.id == selectedOption;
+          })
+          result.forEach((product) => {
+            product.size.forEach((siz) => {
+              bucketSize += `
+                <option value="${siz}">${siz}</option>
+              `
+            })
+            product.color.forEach((col) => {
+              bucketColor += `
+                <option value="${col}">${col}</option>
+              `
+            })
+          });
+          sizeElement.innerHTML = bucketSize;
+          colorElement.innerHTML = bucketColor;
+        })
+        .catch((err) => {
+          console.log(err.message)
+        });
+    }
+
+    const addItem = async () => {
+      await axios.get('http://localhost:3000/products')
+        .then((res) => {
+          let bucketProduct = '';
+          let products = res.data;
+          products.forEach(product => {
+            bucketProduct += `
+            <option value="${product.id}">${product.name}</option>
+          `
+          });
+          let content = `
+          <tr>
+            <td>
+              <select name="idProduct" onchange="checkVal(event)" class="name">${bucketProduct}</select>
+              <select name="size"></select>
+              <select name="color"></select>
+            </td>
+            <td>
+              <button onclick="addItem()">+</button>
+              <button>-</button>
+            </td>
+          </tr>
+          `
+          $('#transactionResult').append(content);
+        })
+        .catch((err) => {
+          console.log(err.message)
+        });
+    }
+
+    const getDetail = async () => {
+      var prodBucket = ''
+      await axios.get('http://localhost:3000/products')
+        .then((res) => {
+          let products = res.data;
+          products.forEach(product => {
+            prodBucket += `
+            <option value="${product.id}">${product.name}</option>
+          `
+          });
+        })
+        .catch((err) => {
+          console.log(err.message)
+        });
+      await axios.get('http://localhost:3000/detailTransaction?trx=TRX07062023001')
+        .then((res) => {
+          let bucket = '';
+          let transactions = res.data;
+          transactions.forEach((trx, i) => {
+            bucket += `
+            <tr>
+              <td>
+                <select name="idProduct" onchange="checkVal(event)" class="name">
+                  <option value="${trx.idProduct}">${trx.idProduct}</option>
+                  ${prodBucket}
+                </select>
+                <select name="size">
+                  <option value="${trx.size}">${trx.size}</option>
+                </select>
+                <select name="color">
+                  <option value="${trx.color}">${trx.color}</option>
+                </select>
+              </td>
+              <td>
+                <button onclick="addItem()">+</button>
+                <button>-</button>
+              </td>
+            </tr>
+          `
+          })
+          document.getElementById('transactionResult').innerHTML = bucket;
+        });
+    }
+    getDetail();
+  </script>
+</body>
+
+</html>

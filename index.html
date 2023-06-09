@@ -20,31 +20,81 @@
 
 <body>
 
-  <table>
+  <div id="form">
+    <div style="margin-bottom: 10px">
+      <input type="text" id="trx" value="TRX07062023001">
+      <input type="date" id="tanggal">
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Produk</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="result">
+        <tr>
+          <td>
+            <select name="idProduct" onchange="checkVal(event)" class="name"></select>
+            <select name="size"></select>
+            <select name="color"></select>
+          </td>
+          <td>
+            <button class="size" onclick="addItem()">+</button>
+            <button>-</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <button onclick="saveData()" style="margin-top: 10px">Simpan</button>
+  </div>
+  <table style="margin-top: 10px">
     <thead>
       <tr>
-        <th>Produk</th>
+        <th>No</th>
+        <th>Transaksi</th>
+        <th>Tanggal</th>
         <th>Action</th>
       </tr>
     </thead>
-    <tbody id="result">
-
-      <tr>
-        <td>
-          <select onchange="checkVal(event)" class="name"></select>
-          <select class="size"></select>
-          <select class="color"></select>
-        </td>
-        <td>
-          <button class="size" onclick="addItem()">+</button>
-          <button>-</button>
-        </td>
-      </tr>
-    </tbody>
+    <tbody id="transactionResult"></tbody>
   </table>
-  <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  <script src="./js/jquery-3.7.0.min.js"></script>
+  <script src="./js/axios.min.js"></script>
   <script>
+    const saveData = async () => {
+      let idTrx = document.getElementById('trx').value;
+      let tanggal = document.getElementById('tanggal').value;
+      let tableRow = document.getElementById('result');
+      let rows = tableRow.querySelectorAll('tr');
+      await axios.post('http://localhost:3000/transactions', {
+          trx: idTrx,
+          tanggal: tanggal,
+        })
+        .then((res) => {
+          console.log('berhasil disimpan!');
+        })
+        .catch((err) => {
+          console.log(err.message);
+        })
+      for (let i = 0; i < rows.length; i++) {
+        var idProduct = document.getElementsByName('idProduct')[i].value;
+        var size = document.getElementsByName('size')[i].value;
+        var color = document.getElementsByName('color')[i].value;
+        await axios.post('http://localhost:3000/detailTransaction', {
+          trx: idTrx,
+          idProduct: idProduct,
+          size: size,
+          color: color,
+        })
+        .then((res) => {
+          console.log('berhasil disimpan!');
+        })
+        .catch((err) => {
+          console.log(err.message);
+        })
+      }
+    }
     const getItem = async () => {
       await axios.get('http://localhost:3000/products')
         .then((res) => {
@@ -109,9 +159,9 @@
           let content = `
           <tr>
             <td>
-              <select onchange="checkVal(event)" class="name">${bucketProduct}</select>
-              <select class="size"></select>
-              <select class="color"></select>
+              <select name="idProduct" onchange="checkVal(event)" class="name">${bucketProduct}</select>
+              <select name="size"></select>
+              <select name="color"></select>
             </td>
             <td>
               <button onclick="addItem()">+</button>
@@ -125,6 +175,28 @@
           console.log(err.message)
         });
     }
+
+    const getTransactions = async () => {
+      await axios.get('http://localhost:3000/transactions')
+      .then((res) => {
+        let bucket = '';
+        let transactions = res.data;
+        transactions.forEach((trx,i) => {
+          bucket += `
+            <tr>
+              <td>${i + 1}</td>
+              <td>${trx.trx}</td>
+              <td>${trx.tanggal}</td>
+              <td>
+                <a href="./detail.html">Detail</a>
+              </td>
+            </tr>
+          `
+        })
+        document.getElementById('transactionResult').innerHTML = bucket;
+      });
+    }
+    getTransactions();
   </script>
 </body>
 
